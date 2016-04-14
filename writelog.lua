@@ -45,7 +45,7 @@ local LOG_LEVEL_FMT = {
     [WARNING]   = '%s - ',
     [NOTICE]    = '%s [notice] - ',
     [VERBOSE]   = '%s [verbose] - ',
-    [DEBUG]     = '%s [' .. LOCATION_FMT .. ':debug] - '
+    [DEBUG]     = '%s [debug:' .. LOCATION_FMT .. '] - '
 };
 local INSPECT_OPT = {
     depth = 0,
