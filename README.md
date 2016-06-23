@@ -52,6 +52,34 @@ returns a logger function table
 - `...`: passed logging data
 
 
+## Helper Functions
+
+### lvstr = writelog.tolvstr( lv )
+
+returns a stringified log level
+
+**Params**
+
+- `lv:number`: log level constants
+
+**Returns**
+
+1. `lvstr:string`: a stringified log level or `unknown_level`
+
+
+### strv = writelog.tostrv( ... )
+
+returns a string vector
+
+**Parameters**
+
+- `...`: any arguments
+
+**Returns**
+
+1. `strv:table`: string vector that index started at 1
+
+
 ## Usage
 
 ```lua
