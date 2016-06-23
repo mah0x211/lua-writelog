@@ -42,10 +42,10 @@ local DEBUG = 4;
 local ISO8601_FMT = '%FT%T%z';
 local LOCATION_FMT = '%s:%d';
 local LOG_LEVEL_FMT = {
-    [WARNING]   = '%s - ',
-    [NOTICE]    = '%s [notice] - ',
-    [VERBOSE]   = '%s [verbose] - ',
-    [DEBUG]     = '%s [debug:' .. LOCATION_FMT .. '] - '
+    [WARNING]   = '%s [warn] ',
+    [NOTICE]    = '%s [notice] ',
+    [VERBOSE]   = '%s [verbose] ',
+    [DEBUG]     = '%s [debug:' .. LOCATION_FMT .. '] '
 };
 local INSPECT_OPT = {
     depth = 0,
