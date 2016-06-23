@@ -15,17 +15,22 @@ luarocks install writelog --from=http://mah0x211.github.io/rocks/
 
 ## Creating a logger
 
-### logger = writelog.new( [loglevel] )
+### logger = writelog.new( [loglevel, [writer]] )
 
 returns a logger function table
 
 **Parameters**
 
 - `loglevel:number`: log level constants (default: `WARNING`)
+- `writer:function`: your custom log writer
 
 **Returns**
 
-1. `logger:table`: logger function table
+1. `logger:table`: table that contained following function;
+    - `warn:function`: write a warning log
+    - `notice:function`: write a notice log
+    - `verbose:function`: write a verbose log
+    - `debug:function`: write a debug log
 
 
 ### Log Level Constants
@@ -34,6 +39,17 @@ returns a logger function table
 - `writelog.NOTICE`
 - `writelog.VERBOSE`
 - `writelog.DEBUG`
+
+
+## Custom Log Writer Specification
+
+### function writer( loglevel, debuginfo, ... )
+
+**Params**
+
+- `loglevel:number`: log level constants
+- `debuginfo:table`: table of debug.getinfo() with `'Sl'` option
+- `...`: passed logging data
 
 
 ## Usage
