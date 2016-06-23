@@ -29,7 +29,6 @@
 
 -- assign to local
 local inspect = require('util').inspect;
-local unpack = unpack or table.unpack;
 local write = io.write;
 local date = os.date;
 local getinfo = debug.getinfo;
@@ -57,7 +56,6 @@ local NOOP = function()end
 
 --- tostrv - returns a string-vector
 local function tostrv( ... )
-    local idx = 1;
     local argv = {...};
     local narg = select( '#', ... );
     local strv = {};
