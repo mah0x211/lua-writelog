@@ -56,16 +56,11 @@ local NOOP = function()end
 
 
 --- tostrv - returns a string-vector
--- @param lv
--- @param ...
-local function output( lv, info, ... )
-    local prefix = LOG_LEVEL_FMT[lv]:format(
-        date( ISO8601_FMT ), info.short_src, info.currentline
-    );
-    local idx = 2;
+local function tostrv( ... )
+    local idx = 1;
     local argv = {...};
     local narg = select( '#', ... );
-    local strv = { prefix };
+    local strv = {};
     local t, v;
 
     -- convert to string
@@ -73,54 +68,80 @@ local function output( lv, info, ... )
         v = argv[i];
         t = type( v );
         if t == 'string' then
-            strv[idx] = v;
+            strv[i] = v;
         elseif t == 'table' then
-            strv[idx] = inspect( v, INSPECT_OPT );
+            strv[i] = inspect( v, INSPECT_OPT );
         else
-            strv[idx] = tostring( v );
+            strv[i] = tostring( v );
         end
-        -- append space
-        strv[idx + 1] = i ~= narg and ' ' or '\n';
-        idx = idx + 2;
     end
 
-    write( unpack( strv ) );
+    return strv;
 end
 
 
-local function lwarn( ... )
-    output( WARNING, EMPTY_INFO, ... );
+local function lwarn( writer )
+    return function( ... )
+        writer( WARNING, EMPTY_INFO, ... );
+    end
 end
 
-local function lnotice( ... )
-    output( NOTICE, EMPTY_INFO, ... );
+local function lnotice( writer )
+    return function( ... )
+        writer( NOTICE, EMPTY_INFO, ...  );
+    end
 end
 
-local function lverbose( ... )
-    output( VERBOSE, EMPTY_INFO, ... );
+local function lverbose( writer )
+    return function( ... )
+        writer( VERBOSE, EMPTY_INFO, ... );
+    end
 end
 
-local function ldebug( ... )
-    output( DEBUG, getinfo( 2, 'Sl' ), ... );
+local function ldebug( writer )
+    return function( ... )
+        writer( DEBUG, getinfo( 2, 'Sl' ), ... );
+    end
+end
+
+
+--- defaultwriter
+-- @param lv
+-- @param info
+-- @param ...
+local function defaultwriter( lv, info, ... )
+    local prefix = LOG_LEVEL_FMT[lv]:format(
+        date( ISO8601_FMT ), info.short_src, info.currentline
+    );
+
+    write( prefix, concat( tostrv( ... ), ' ' ), '\n' );
 end
 
 
 --- new
 -- @param lv
+-- @param writer
 -- @return logger
-local function new( lv )
+local function new( lv, writer )
     if not lv then
         lv = WARNING;
     elseif type( lv ) ~= 'number' then
         error( 'lv must be number', 2 );
     end
 
+    -- use the defaultwriter
+    if writer == nil then
+        writer = defaultwriter;
+    elseif type( writer ) ~= 'function' then
+        error( 'writer must be function' );
+    end
+
     return setmetatable({},{
         __index = {
-            warn = lwarn,
-            notice = lv > WARNING and lnotice or NOOP,
-            verbose = lv > NOTICE and lverbose or NOOP,
-            debug = lv > VERBOSE and ldebug or NOOP
+            warn = lwarn( writer ),
+            notice = lv > WARNING and lnotice( writer ) or NOOP,
+            verbose = lv > NOTICE and lverbose( writer ) or NOOP,
+            debug = lv > VERBOSE and ldebug( writer ) or NOOP
         }
     });
 end
