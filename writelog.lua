@@ -94,36 +94,37 @@ local function tostrv( ... )
 end
 
 
-local function lwarn( writer )
+local function lwarn( writer, udata )
     return function( ... )
-        writer( WARNING, EMPTY_INFO, ... );
+        writer( udata, WARNING, EMPTY_INFO, ... );
     end
 end
 
-local function lnotice( writer )
+local function lnotice( writer, udata )
     return function( ... )
-        writer( NOTICE, EMPTY_INFO, ...  );
+        writer( udata, NOTICE, EMPTY_INFO, ...  );
     end
 end
 
-local function lverbose( writer )
+local function lverbose( writer, udata )
     return function( ... )
-        writer( VERBOSE, EMPTY_INFO, ... );
+        writer( udata, VERBOSE, EMPTY_INFO, ... );
     end
 end
 
-local function ldebug( writer )
+local function ldebug( writer, udata )
     return function( ... )
-        writer( DEBUG, getinfo( 2, 'Sl' ), ... );
+        writer( udata, DEBUG, getinfo( 2, 'Sl' ), ... );
     end
 end
 
 
 --- defaultwriter
+-- @param _
 -- @param lv
 -- @param info
 -- @param ...
-local function defaultwriter( lv, info, ... )
+local function defaultwriter( _, lv, info, ... )
     local prefix = LOG_LEVEL_FMT[lv]:format(
         date( ISO8601_FMT ), info.short_src, info.currentline
     );
@@ -135,8 +136,9 @@ end
 --- new
 -- @param lv
 -- @param writer
+-- @param udata
 -- @return logger
-local function new( lv, writer )
+local function new( lv, writer, udata )
     if not lv then
         lv = WARNING;
     elseif type( lv ) ~= 'number' then
@@ -152,10 +154,10 @@ local function new( lv, writer )
 
     return setmetatable({},{
         __index = {
-            warn = lwarn( writer ),
-            notice = lv > WARNING and lnotice( writer ) or NOOP,
-            verbose = lv > NOTICE and lverbose( writer ) or NOOP,
-            debug = lv > VERBOSE and ldebug( writer ) or NOOP
+            warn = lwarn( writer, udata ),
+            notice = lv > WARNING and lnotice( writer, udata ) or NOOP,
+            verbose = lv > NOTICE and lverbose( writer, udata ) or NOOP,
+            debug = lv > VERBOSE and ldebug( writer, udata ) or NOOP
         }
     });
 end
