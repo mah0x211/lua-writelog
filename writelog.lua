@@ -40,11 +40,17 @@ local VERBOSE = 3;
 local DEBUG = 4;
 local ISO8601_FMT = '%FT%T%z';
 local LOCATION_FMT = '%s:%d';
+local LOG_LEVEL_NAME = {
+    [WARNING]   = 'warn',
+    [NOTICE]    = 'notice',
+    [VERBOSE]   = 'verbose',
+    [DEBUG]     = 'debug'
+};
 local LOG_LEVEL_FMT = {
-    [WARNING]   = '%s [warn] ',
-    [NOTICE]    = '%s [notice] ',
-    [VERBOSE]   = '%s [verbose] ',
-    [DEBUG]     = '%s [debug:' .. LOCATION_FMT .. '] '
+    [WARNING]   = ('%%s [%s] '):format( LOG_LEVEL_NAME[WARNING] ),
+    [NOTICE]    = ('%%s [%s] '):format( LOG_LEVEL_NAME[NOTICE] ),
+    [VERBOSE]   = ('%%s [%s] '):format( LOG_LEVEL_NAME[VERBOSE] ),
+    [DEBUG]     = ('%%s [%s: %s] '):format( LOG_LEVEL_NAME[DEBUG], LOCATION_FMT )
 };
 local INSPECT_OPT = {
     depth = 0,
@@ -54,7 +60,17 @@ local EMPTY_INFO = {};
 local NOOP = function()end
 
 
+--- tolvstr - returns a stringified log level
+-- @param lv
+-- @return lvstr
+local function tolvstr( lv )
+    return LOG_LEVEL_NAME[lv] or 'unknown_level';
+end
+
+
 --- tostrv - returns a string-vector
+-- @param ...
+-- @return strv
 local function tostrv( ... )
     local argv = {...};
     local narg = select( '#', ... );
@@ -148,6 +164,8 @@ end
 -- exports
 return {
     new = new,
+    tostrv = tostrv,
+    tolvstr = tolvstr,
     WARNING = WARNING,
     NOTICE = NOTICE,
     VERBOSE = VERBOSE,
