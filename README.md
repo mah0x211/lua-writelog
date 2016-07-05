@@ -46,7 +46,7 @@ returns a logger function table
 - `writelog.DEBUG`
 
 
-## Custom Log Writer Specification
+## Log Writer Specification
 
 ### function writer( udata, ... )
 
@@ -56,15 +56,56 @@ returns a logger function table
 - `...`: formatted logging data
 
 
-## Custom Log Formatter Specification
+the default log writer is implemented as follows;
 
-### function formatter( loglevel, debuginfo, ... )
+```lua
+function defaultwriter( _, ... )
+    io.write( ... );
+end
+```
+
+
+## Log Formatter Specification
+
+### ... = function formatter( loglevel, debuginfo, ... )
 
 **Params**
 
 - `loglevel:number`: log level constants
 - `debuginfo:table`: table of debug.getinfo() with `'Sl'` option
 - `...`: passed logging data
+
+
+the default log formatter is implemented as follows;
+
+```lua
+local ISO8601_FMT = '%FT%T%z';
+local LOCATION_FMT = '%s:%d';
+local LOG_LEVEL_NAME = {
+    [ERROR]   = 'error',
+    [WARNING] = 'warn',
+    [NOTICE]  = 'notice',
+    [VERBOSE] = 'verbose',
+    [DEBUG]   = 'debug'
+};
+local LOG_LEVEL_FMT = {
+    [ERROR]   = ('%%s [%s] '):format( LOG_LEVEL_NAME[ERROR] ),
+    [WARNING] = ('%%s [%s] '):format( LOG_LEVEL_NAME[WARNING] ),
+    [NOTICE]  = ('%%s [%s] '):format( LOG_LEVEL_NAME[NOTICE] ),
+    [VERBOSE] = ('%%s [%s] '):format( LOG_LEVEL_NAME[VERBOSE] ),
+    [DEBUG]   = ('%%s [%s: %s] '):format( LOG_LEVEL_NAME[DEBUG], LOCATION_FMT )
+};
+
+--- defaultformatter
+-- @return prefix '<ISO8601> [<level <srcfile:line>>] '
+-- @return str string
+-- @return LF line-feed
+local function defaultformatter( lv, info, ... )
+    return LOG_LEVEL_FMT[lv]:format(
+        os.date( ISO8601_FMT ), info.short_src, info.currentline
+    ), table.concat( tostrv( ... ), ' ' ), '\n';
+end
+```
 
 
 ## Helper Functions
