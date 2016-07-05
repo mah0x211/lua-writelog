@@ -25,7 +25,7 @@ returns a logger function table
 - `udata`: data for the first argument of your custom log writer
 - `formatter:callable`: your custom log formatter
 
-**NOTE:* the `callable` type must be a `function` or has a `__call` metamethod.
+**NOTE:** the `callable` type must be a `function` or has a `__call` metamethod.
 
 **Returns**
 
