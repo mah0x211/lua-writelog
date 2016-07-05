@@ -35,6 +35,7 @@ local getinfo = debug.getinfo;
 local getmetatable = debug.getmetatable;
 local concat = table.concat;
 -- constants
+local ERROR = 0;
 local WARNING = 1;
 local NOTICE = 2;
 local VERBOSE = 3;
@@ -42,12 +43,14 @@ local DEBUG = 4;
 local ISO8601_FMT = '%FT%T%z';
 local LOCATION_FMT = '%s:%d';
 local LOG_LEVEL_NAME = {
+    [ERROR]     = 'error',
     [WARNING]   = 'warn',
     [NOTICE]    = 'notice',
     [VERBOSE]   = 'verbose',
     [DEBUG]     = 'debug'
 };
 local LOG_LEVEL_FMT = {
+    [ERROR]     = ('%%s [%s] '):format( LOG_LEVEL_NAME[ERROR] ),
     [WARNING]   = ('%%s [%s] '):format( LOG_LEVEL_NAME[WARNING] ),
     [NOTICE]    = ('%%s [%s] '):format( LOG_LEVEL_NAME[NOTICE] ),
     [VERBOSE]   = ('%%s [%s] '):format( LOG_LEVEL_NAME[VERBOSE] ),
@@ -90,10 +93,15 @@ local function tostrv( ... )
             strv[i] = tostring( v );
         end
     end
-
     return strv;
 end
 
+
+local function lerror( writer, udata, formatter )
+    return function( ... )
+        writer( udata, ERROR, EMPTY_INFO, ... );
+    end
+end
 
 local function lwarn( writer, udata )
     return function( ... )
@@ -167,7 +175,8 @@ local function new( lv, writer, udata )
 
     return setmetatable({},{
         __index = {
-            warn = lwarn( writer, udata ),
+            err = lerror( writer, udata ),
+            warn = lv > ERROR and lwarn( writer, udata ) or NOOP,
             notice = lv > WARNING and lnotice( writer, udata ) or NOOP,
             verbose = lv > NOTICE and lverbose( writer, udata ) or NOOP,
             debug = lv > VERBOSE and ldebug( writer, udata ) or NOOP
@@ -181,6 +190,7 @@ return {
     new = new,
     tostrv = tostrv,
     tolvstr = tolvstr,
+    ERROR = ERROR,
     WARNING = WARNING,
     NOTICE = NOTICE,
     VERBOSE = VERBOSE,
