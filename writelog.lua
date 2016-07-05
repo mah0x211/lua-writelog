@@ -93,52 +93,58 @@ local function tostrv( ... )
             strv[i] = tostring( v );
         end
     end
+
     return strv;
 end
 
 
 local function lerror( writer, udata, formatter )
     return function( ... )
-        writer( udata, ERROR, EMPTY_INFO, ... );
+        writer( udata, formatter( ERROR, EMPTY_INFO, ... ) );
     end
 end
 
-local function lwarn( writer, udata )
+local function lwarn( writer, udata, formatter )
     return function( ... )
-        writer( udata, WARNING, EMPTY_INFO, ... );
+        writer( udata, formatter( WARNING, EMPTY_INFO, ... ) );
     end
 end
 
-local function lnotice( writer, udata )
+local function lnotice( writer, udata, formatter )
     return function( ... )
-        writer( udata, NOTICE, EMPTY_INFO, ...  );
+        writer( udata, formatter( NOTICE, EMPTY_INFO, ... ) );
     end
 end
 
-local function lverbose( writer, udata )
+local function lverbose( writer, udata, formatter )
     return function( ... )
-        writer( udata, VERBOSE, EMPTY_INFO, ... );
+        writer( udata, formatter( VERBOSE, EMPTY_INFO, ... ) );
     end
 end
 
-local function ldebug( writer, udata )
+local function ldebug( writer, udata, formatter )
     return function( ... )
-        writer( udata, DEBUG, getinfo( 2, 'Sl' ), ... );
+        writer( udata, formatter( DEBUG, getinfo( 2, 'Sl' ), ... ) );
     end
 end
 
 
 --- defaultwriter
 -- @param _
+-- @param ...
+local function defaultwriter( _, ... )
+    write( ... );
+end
+
+
+--- defaultformatter
 -- @param lv
 -- @param info
 -- @param ...
-local function defaultwriter( _, lv, info, ... )
-    local prefix = LOG_LEVEL_FMT[lv]:format(
+local function defaultformatter( lv, info, ... )
+    return LOG_LEVEL_FMT[lv]:format(
         date( ISO8601_FMT ), info.short_src, info.currentline
-    );
-
-    write( prefix, concat( tostrv( ... ), ' ' ), '\n' );
+    ), concat( tostrv( ... ), ' ' ), '\n';
 end
 
 
@@ -157,8 +163,9 @@ end
 -- @param lv
 -- @param writer
 -- @param udata
+-- @param formatter
 -- @return logger
-local function new( lv, writer, udata )
+local function new( lv, writer, udata, formatter )
     -- use WARNING level as a default level
     if not lv then
         lv = WARNING;
@@ -173,13 +180,20 @@ local function new( lv, writer, udata )
         error( 'writer must be callable' );
     end
 
+    -- use the defaultformatter
+    if formatter == nil then
+        formatter = defaultformatter;
+    elseif not iscallable( formatter ) then
+        error( 'formatter must be callable' );
+    end
+
     return setmetatable({},{
         __index = {
-            err = lerror( writer, udata ),
-            warn = lv > ERROR and lwarn( writer, udata ) or NOOP,
-            notice = lv > WARNING and lnotice( writer, udata ) or NOOP,
-            verbose = lv > NOTICE and lverbose( writer, udata ) or NOOP,
-            debug = lv > VERBOSE and ldebug( writer, udata ) or NOOP
+            err = lerror( writer, udata, formatter ),
+            warn = lv > ERROR and lwarn( writer, udata, formatter ) or NOOP,
+            notice = lv > WARNING and lnotice( writer, udata, formatter ) or NOOP,
+            verbose = lv > NOTICE and lverbose( writer, udata, formatter ) or NOOP,
+            debug = lv > VERBOSE and ldebug( writer, udata, formatter ) or NOOP
         }
     });
 end
