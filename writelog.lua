@@ -32,6 +32,7 @@ local inspect = require('util').inspect;
 local write = io.write;
 local date = os.date;
 local getinfo = debug.getinfo;
+local getmetatable = debug.getmetatable;
 local concat = table.concat;
 -- constants
 local WARNING = 1;
@@ -57,7 +58,7 @@ local INSPECT_OPT = {
     padding = 0
 };
 local EMPTY_INFO = {};
-local NOOP = function()end
+local NOOP = function()end;
 
 
 --- tolvstr - returns a stringified log level
@@ -133,12 +134,24 @@ local function defaultwriter( _, lv, info, ... )
 end
 
 
+--- iscallable
+-- @param val
+-- @return bool
+local function iscallable( val )
+    return type( val ) == 'function' or
+           type( val ) == 'table' and
+           type( getmetatable( val ) ) == 'table' and
+           type( getmetatable( val ).__call ) == 'function';
+end
+
+
 --- new
 -- @param lv
 -- @param writer
 -- @param udata
 -- @return logger
 local function new( lv, writer, udata )
+    -- use WARNING level as a default level
     if not lv then
         lv = WARNING;
     elseif type( lv ) ~= 'number' then
@@ -148,8 +161,8 @@ local function new( lv, writer, udata )
     -- use the defaultwriter
     if writer == nil then
         writer = defaultwriter;
-    elseif type( writer ) ~= 'function' then
-        error( 'writer must be function' );
+    elseif not iscallable( writer ) then
+        error( 'writer must be callable' );
     end
 
     return setmetatable({},{
