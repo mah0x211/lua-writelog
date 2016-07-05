@@ -1,5 +1,4 @@
-lua-writelog
-=======
+# lua-writelog
 
 simple logging module.
 
@@ -15,27 +14,32 @@ luarocks install writelog --from=http://mah0x211.github.io/rocks/
 
 ## Creating a logger
 
-### logger = writelog.new( [loglevel [, writer [, udata]]] )
+### logger = writelog.new( [loglevel [, writer [, udata [, formatter]]]] )
 
 returns a logger function table
 
 **Parameters**
 
 - `loglevel:number`: log level constants (default: `WARNING`)
-- `writer:function`: your custom log writer
-- `udata`: any data for the first argument of your custom log writer
+- `writer:callable`: your custom log writer
+- `udata`: data for the first argument of your custom log writer
+- `formatter:callable`: your custom log formatter
+
+**NOTE:* the `callable` type must be a `function` or has a `__call` metamethod.
 
 **Returns**
 
 1. `logger:table`: table that contained following function;
-    - `warn:function`: write a warning log
-    - `notice:function`: write a notice log
-    - `verbose:function`: write a verbose log
-    - `debug:function`: write a debug log
+  - `err:function`: write a error log
+  - `warn:function`: write a warning log
+  - `notice:function`: write a notice log
+  - `verbose:function`: write a verbose log
+  - `debug:function`: write a debug log
 
 
 ### Log Level Constants
 
+- `writelog.ERROR`
 - `writelog.WARNING`
 - `writelog.NOTICE`
 - `writelog.VERBOSE`
@@ -44,11 +48,20 @@ returns a logger function table
 
 ## Custom Log Writer Specification
 
-### function writer( udata, loglevel, debuginfo, ... )
+### function writer( udata, ... )
 
 **Params**
 
-- `udata`: any data
+- `udata`: any of your data
+- `...`: formatted logging data
+
+
+## Custom Log Formatter Specification
+
+### function formatter( loglevel, debuginfo, ... )
+
+**Params**
+
 - `loglevel:number`: log level constants
 - `debuginfo:table`: table of debug.getinfo() with `'Sl'` option
 - `...`: passed logging data
