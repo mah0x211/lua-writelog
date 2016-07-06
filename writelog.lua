@@ -159,14 +159,14 @@ local function iscallable( val )
 end
 
 
---- new
+--- create
 -- @param lv
 -- @param writer
 -- @param udata
 -- @param formatter
 -- @return logger
 -- @return err
-local function new( lv, writer, ctx, formatter )
+local function create( lv, writer, ctx, formatter )
     -- use WARNING level as a default level
     if not lv then
         lv = WARNING;
@@ -209,7 +209,7 @@ end
 
 -- exports
 return {
-    new = new,
+    create = create,
     tostrv = tostrv,
     tolvstr = tolvstr,
     ERROR = ERROR,
