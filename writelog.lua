@@ -130,6 +130,14 @@ local function ldebug( writer, formatter )
 end
 
 
+--- defaultclose
+-- @return ok
+-- @return err
+local function defaultclose()
+    return true;
+end
+
+
 --- defaultwriter
 -- @param _
 -- @param ...
@@ -196,8 +204,10 @@ local function create( lv, writer, ctx, formatter )
         return nil, 'formatter must be callable';
     end
 
+
     return setmetatable( ctx, {
         __index = {
+            close = not iscallable( ctx.close ) and defaultclose,
             err = lerror( writer, formatter ),
             warn = lv > ERROR and lwarn( writer, formatter ) or NOOP,
             notice = lv > WARNING and lnotice( writer, formatter ) or NOOP,
