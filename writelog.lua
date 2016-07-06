@@ -165,26 +165,27 @@ end
 -- @param udata
 -- @param formatter
 -- @return logger
+-- @return err
 local function new( lv, writer, udata, formatter )
     -- use WARNING level as a default level
     if not lv then
         lv = WARNING;
     elseif type( lv ) ~= 'number' then
-        error( 'lv must be number', 2 );
+        return nil, 'lv must be number';
     end
 
     -- use the defaultwriter
     if writer == nil then
         writer = defaultwriter;
     elseif not iscallable( writer ) then
-        error( 'writer must be callable' );
+        return nil, 'writer must be callable';
     end
 
     -- use the defaultformatter
     if formatter == nil then
         formatter = defaultformatter;
     elseif not iscallable( formatter ) then
-        error( 'formatter must be callable' );
+        return nil, 'formatter must be callable';
     end
 
     return setmetatable({},{
