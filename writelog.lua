@@ -28,6 +28,7 @@
 --]]
 
 -- assign to local
+local require = require;
 local inspect = require('util').inspect;
 local write = io.write;
 local date = os.date;
@@ -207,8 +208,89 @@ local function create( lv, writer, ctx, formatter )
 end
 
 
+--- new
+-- @param lv
+-- @param pathname
+-- @param ...
+-- @return logger
+-- @return err
+local function new( lv, pathname, ... )
+    -- create stdout logger
+    if pathname == nil then
+        return create( lv );
+    elseif type( pathname ) ~= 'string' then
+        return nil, 'invalid pathname format';
+    else
+        local head, tail = pathname:find( '://', 1, true );
+        local ctx = {};
+        local cur, scheme, ok;
+
+        -- invalid pathname format
+        if not head then
+            return nil, 'invalid pathname format';
+        end
+
+        -- extract scheme
+        scheme = pathname:sub( 1, head - 1 );
+        ctx.scheme = scheme;
+        cur = tail + 1;
+
+        -- file scheme
+        if scheme == 'file' then
+            ctx.path = pathname:sub( cur );
+        -- non-file scheme
+        else
+            -- check user:password@...
+            head = pathname:find( '@', cur, true );
+            -- extract authinfo
+            if head then
+                local authinfo = pathname:sub( cur, head - 1 );
+
+                cur = head + 1;
+                head = authinfo:find( ':', 1, true );
+                -- user:password
+                if head then
+                    ctx.user = authinfo:sub( 1, head - 1 );
+                    ctx.pswd = authinfo:sub( head + 1 );
+                -- user only
+                else
+                    ctx.user = authinfo;
+                end
+            end
+
+            -- unix domain socket
+            if pathname:find( '^[./]', cur ) then
+                ctx.path = pathname:sub( cur );
+            -- non-unix domain socket
+            else
+                -- check host:port
+                head = pathname:find( ':', cur );
+                -- host:port
+                if head then
+                    ctx.host = pathname:sub( cur, head - 1 );
+                    ctx.port = pathname:sub( head + 1 );
+                -- host only
+                else
+                    ctx.host = pathname:sub( cur, head - 1 );
+                end
+            end
+        end
+
+        -- load a logger module for target scheme
+        ok, scheme = pcall( require, 'writelog.' .. scheme );
+        if not ok then
+            return nil, scheme;
+        end
+
+        -- create new logger
+        return scheme.new( lv, ctx, ... );
+    end
+end
+
+
 -- exports
 return {
+    new = new,
     create = create,
     tostrv = tostrv,
     tolvstr = tolvstr,
