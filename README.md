@@ -48,7 +48,7 @@ returns a logger function table
 
 ## Log Writer Specification
 
-### function writer( udata, ... )
+### writer( udata, ... )
 
 **Params**
 
@@ -67,7 +67,7 @@ end
 
 ## Log Formatter Specification
 
-### ... = function formatter( loglevel, debuginfo, ... )
+### ... = formatter( loglevel, debuginfo, ... )
 
 **Params**
 
