@@ -98,33 +98,33 @@ local function tostrv( ... )
 end
 
 
-local function lerror( writer, udata, formatter )
-    return function( ... )
-        writer( udata, formatter( ERROR, EMPTY_INFO, ... ) );
+local function lerror( writer, formatter )
+    return function( ctx, ... )
+        writer( ctx, formatter( ERROR, EMPTY_INFO, ... ) );
     end
 end
 
-local function lwarn( writer, udata, formatter )
-    return function( ... )
-        writer( udata, formatter( WARNING, EMPTY_INFO, ... ) );
+local function lwarn( writer, formatter )
+    return function( ctx, ... )
+        writer( ctx, formatter( WARNING, EMPTY_INFO, ... ) );
     end
 end
 
-local function lnotice( writer, udata, formatter )
-    return function( ... )
-        writer( udata, formatter( NOTICE, EMPTY_INFO, ... ) );
+local function lnotice( writer, formatter )
+    return function( ctx, ... )
+        writer( ctx, formatter( NOTICE, EMPTY_INFO, ... ) );
     end
 end
 
-local function lverbose( writer, udata, formatter )
-    return function( ... )
-        writer( udata, formatter( VERBOSE, EMPTY_INFO, ... ) );
+local function lverbose( writer, formatter )
+    return function( ctx, ... )
+        writer( ctx, formatter( VERBOSE, EMPTY_INFO, ... ) );
     end
 end
 
-local function ldebug( writer, udata, formatter )
-    return function( ... )
-        writer( udata, formatter( DEBUG, getinfo( 2, 'Sl' ), ... ) );
+local function ldebug( writer, formatter )
+    return function( ctx, ... )
+        writer( ctx, formatter( DEBUG, getinfo( 2, 'Sl' ), ... ) );
     end
 end
 
@@ -166,7 +166,7 @@ end
 -- @param formatter
 -- @return logger
 -- @return err
-local function new( lv, writer, udata, formatter )
+local function new( lv, writer, ctx, formatter )
     -- use WARNING level as a default level
     if not lv then
         lv = WARNING;
@@ -181,6 +181,13 @@ local function new( lv, writer, udata, formatter )
         return nil, 'writer must be callable';
     end
 
+    -- use empty table
+    if ctx == nil then
+        ctx = {};
+    elseif type( ctx ) ~= 'table' then
+        return nil, 'udata must be table';
+    end
+
     -- use the defaultformatter
     if formatter == nil then
         formatter = defaultformatter;
@@ -188,13 +195,13 @@ local function new( lv, writer, udata, formatter )
         return nil, 'formatter must be callable';
     end
 
-    return setmetatable({},{
+    return setmetatable( ctx, {
         __index = {
-            err = lerror( writer, udata, formatter ),
-            warn = lv > ERROR and lwarn( writer, udata, formatter ) or NOOP,
-            notice = lv > WARNING and lnotice( writer, udata, formatter ) or NOOP,
-            verbose = lv > NOTICE and lverbose( writer, udata, formatter ) or NOOP,
-            debug = lv > VERBOSE and ldebug( writer, udata, formatter ) or NOOP
+            err = lerror( writer, formatter ),
+            warn = lv > ERROR and lwarn( writer, formatter ) or NOOP,
+            notice = lv > WARNING and lnotice( writer, formatter ) or NOOP,
+            verbose = lv > NOTICE and lverbose( writer, formatter ) or NOOP,
+            debug = lv > VERBOSE and ldebug( writer, formatter ) or NOOP
         }
     });
 end
