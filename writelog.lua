@@ -169,13 +169,20 @@ end
 
 
 --- create
+-- @param ctx
 -- @param lv
 -- @param writer
--- @param ctx
 -- @param formatter
 -- @return logger
 -- @return err
-local function create( lv, writer, ctx, formatter )
+local function create( ctx, lv, writer, formatter )
+    -- use empty table
+    if ctx == nil then
+        ctx = {};
+    elseif type( ctx ) ~= 'table' then
+        return nil, 'ctx must be table';
+    end
+
     -- use WARNING level as a default level
     if not lv then
         lv = WARNING;
@@ -188,13 +195,6 @@ local function create( lv, writer, ctx, formatter )
         writer = defaultwriter;
     elseif not iscallable( writer ) then
         return nil, 'writer must be callable';
-    end
-
-    -- use empty table
-    if ctx == nil then
-        ctx = {};
-    elseif type( ctx ) ~= 'table' then
-        return nil, 'udata must be table';
     end
 
     -- use the defaultformatter
