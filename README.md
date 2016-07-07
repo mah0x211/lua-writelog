@@ -12,30 +12,70 @@ simple logging module.
 luarocks install writelog --from=http://mah0x211.github.io/rocks/
 ```
 
-## Creating a logger
+## Using a logger
 
-### logger = writelog.new( [loglevel [, writer [, udata [, formatter]]]] )
+### logger, err = writelog.new( [loglevel, [pathname, [...]]] )
+
+returns a logger
+
+**Parameters**
+
+- `loglevel:number`: log level constants (default: `WARNING`)
+- `pathname:string`: pathname of output destination (use the `stdout` if `nil`);
+- `...`: options for logger constructor
+
+
+**Returns**
+
+1. `logger:table`: table that contain the following methods;
+  - `err:function`: write a error log
+  - `warn:function`: write a warning log
+  - `notice:function`: write a notice log
+  - `verbose:function`: write a verbose log
+  - `debug:function`: write a debug log
+  - `close:function`: default destructor for context data
+2. `err:string` error message
+
+
+**`pathname` format specification**
+
+`pathname` format is like the URL format as follows;
+
+- `<scheme>://<path>`
+  - a first letter of `<path>` string must be `.` or `/` in this case
+- `<scheme>://<user>:<password>@<host>:<port>/<path>`
+
+
+`scheme` will be considered a submodule name of writelog (i.e. `'writelog.<scheme>'`).
+
+that submodule will be loaded automatically and call a 'new' function with the parsed arguments.
+
+
+## Creating a custom logger
+
+### logger = writelog.create( [ctx], [loglevel [, writer [, formatter]]] )
 
 returns a logger function table
 
 **Parameters**
 
+- `ctx:table`: context data for the custom logger (default: empty-table)
 - `loglevel:number`: log level constants (default: `WARNING`)
 - `writer:callable`: your custom log writer
-- `udata`: data for the first argument of your custom log writer
 - `formatter:callable`: your custom log formatter
 
 **NOTE:** the `callable` type must be a `function` or has a `__call` metamethod.
 
 **Returns**
 
-1. `logger:table`: table that contained following function;
+1. `logger:table`: table that contain the following function in __index table;
   - `err:function`: write a error log
   - `warn:function`: write a warning log
   - `notice:function`: write a notice log
   - `verbose:function`: write a verbose log
   - `debug:function`: write a debug log
-
+  - `close:function`: default destructor for context data
+2. `err:string`: error message
 
 ### Log Level Constants
 
@@ -48,11 +88,11 @@ returns a logger function table
 
 ## Log Writer Specification
 
-### writer( udata, ... )
+### writer( ctx, ... )
 
 **Params**
 
-- `udata`: any of your data
+- `ctx`: context data
 - `...`: formatted logging data
 
 
