@@ -245,10 +245,9 @@ local function new( lv, pathname, ... )
         ctx.scheme = scheme;
         cur = tail + 1;
 
-        -- file scheme
-        if scheme == 'file' then
+        -- check path
+        if pathname:find( '^[./]', cur ) then
             ctx.path = pathname:sub( cur );
-        -- non-file scheme
         else
             -- check user:password@...
             head = pathname:find( '@', cur, true );
@@ -258,30 +257,58 @@ local function new( lv, pathname, ... )
 
                 cur = head + 1;
                 head = authinfo:find( ':', 1, true );
-                -- user:password
-                if head then
-                    ctx.user = authinfo:sub( 1, head - 1 );
-                    ctx.pswd = authinfo:sub( head + 1 );
                 -- user only
-                else
+                if not head then
                     ctx.user = authinfo;
+                -- user:password
+                else
+                    local user = authinfo:sub( 1, head - 1 );
+
+                    if #user > 0 then
+                        ctx.user = user;
+                    end
+                    ctx.pswd = authinfo:sub( head + 1 );
+                end
+
+                -- check path
+                if pathname:find( '^[./]', cur ) then
+                    ctx.path = pathname:sub( cur );
+                    cur = nil;
                 end
             end
 
-            -- unix domain socket
-            if pathname:find( '^[./]', cur ) then
-                ctx.path = pathname:sub( cur );
-            -- non-unix domain socket
-            else
-                -- check host:port
-                head = pathname:find( ':', cur );
-                -- host:port
-                if head then
-                    ctx.host = pathname:sub( cur, head - 1 );
-                    ctx.port = pathname:sub( head + 1 );
+            -- check host:port
+            if cur then
+                head = pathname:find( ':', cur, true );
                 -- host only
+                if not head then
+                    -- lookup path
+                    head = pathname:find( '/', cur, true );
+                    if head then
+                        ctx.host = pathname:sub( cur, head - 1 );
+                        ctx.path = pathname:sub( head );
+                    else
+                        ctx.host = pathname:sub( cur );
+                    end
+                -- host:port
                 else
-                    ctx.host = pathname:sub( cur, head - 1 );
+                    local host = pathname:sub( cur, head - 1 );
+
+                    -- hostname required
+                    if #host == 0 then
+                        return nil, 'invalid pathname format';
+                    end
+                    ctx.host = host;
+                    cur = head + 1;
+
+                    -- lookup path
+                    head = pathname:find( '/', cur, true );
+                    if head then
+                        ctx.port = pathname:sub( cur, head - 1 );
+                        ctx.path = pathname:sub( head );
+                    else
+                        ctx.port = pathname:sub( cur );
+                    end
                 end
             end
         end
