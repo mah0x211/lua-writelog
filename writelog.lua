@@ -215,6 +215,7 @@ local function create( ctx, lv, writer, formatter )
 
     return setmetatable( ctx, {
         __index = {
+            getfd = not iscallable( ctx.getfd ) and NOOP,
             flush = not iscallable( ctx.flush ) and defaultflush,
             close = not iscallable( ctx.close ) and defaultclose,
             err = lerror( writer, formatter ),
