@@ -130,6 +130,14 @@ local function ldebug( writer, formatter )
 end
 
 
+--- defaultflush
+-- @return ok
+-- @return err
+local function defaultflush()
+    return true;
+end
+
+
 --- defaultclose
 -- @return ok
 -- @return err
@@ -207,6 +215,7 @@ local function create( ctx, lv, writer, formatter )
 
     return setmetatable( ctx, {
         __index = {
+            flush = not iscallable( ctx.flush ) and defaultflush,
             close = not iscallable( ctx.close ) and defaultclose,
             err = lerror( writer, formatter ),
             warn = lv > ERROR and lwarn( writer, formatter ) or NOOP,
