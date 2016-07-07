@@ -74,7 +74,8 @@ returns a logger function table
   - `notice:function`: write a notice log
   - `verbose:function`: write a verbose log
   - `debug:function`: write a debug log
-  - `close:function`: default destructor for context data
+  - `flush:function`: set a default flush method if a `flush` function not contained in ctx
+  - `close:function`: set a default destructor method if a `close` function not contained in ctx
 2. `err:string`: error message
 
 ### Log Level Constants
