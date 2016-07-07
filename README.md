@@ -37,7 +37,7 @@ returns a logger
 2. `err:string` error message
 
 
-**`pathname` format specification**
+### Pathname format specification
 
 `pathname` format is like the URL format as follows;
 
@@ -49,6 +49,39 @@ returns a logger
 `scheme` will be considered a submodule name of writelog (i.e. `'writelog.<scheme>'`).
 
 that submodule will be loaded automatically and call a 'new' function with the parsed arguments.
+
+
+### Usage
+
+```lua
+local unpack = unpack or table.unpack;
+local writelog = require('writelog');
+local logger = writelog.new( writelog.DEBUG );
+local args = {
+    'hello',
+    0,
+    1,
+    -1,
+    1.2,
+    'world',
+    {
+        foo = 'bar',
+        baz = {
+            x = {
+                y = 'z'
+            }
+        }
+    },
+    true,
+    function()end,
+    coroutine.create(function()end)
+};
+
+logger:warn( unpack( args ) )
+logger:notice( unpack( args ) )
+logger:verbose( unpack( args ) )
+logger:debug( unpack( args ) )
+```
 
 
 ## Creating a custom logger
@@ -176,35 +209,3 @@ returns a string vector
 
 1. `strv:table`: string vector that index started at 1
 
-
-## Usage
-
-```lua
-local unpack = unpack or table.unpack;
-local writelog = require('writelog');
-local logger = writelog.new( writelog.DEBUG );
-local args = {
-    'hello',
-    0,
-    1,
-    -1,
-    1.2,
-    'world',
-    {
-        foo = 'bar',
-        baz = {
-            x = {
-                y = 'z'
-            }
-        }
-    },
-    true,
-    function()end,
-    coroutine.create(function()end)
-};
-
-logger.warn( unpack( args ) )
-logger.notice( unpack( args ) )
-logger.verbose( unpack( args ) )
-logger.debug( unpack( args ) )
-```
