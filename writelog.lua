@@ -234,14 +234,15 @@ end
 -- @return logger
 -- @return err
 local function new( lv, pathname, ... )
+    local ctx = {};
+
     -- create stdout logger
     if pathname == nil then
-        return create( lv );
+        return create( ctx, lv );
     elseif type( pathname ) ~= 'string' then
         return nil, 'invalid pathname format';
     else
         local head, tail = pathname:find( '://', 1, true );
-        local ctx = {};
         local cur, scheme, ok;
 
         -- invalid pathname format
