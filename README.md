@@ -34,7 +34,9 @@ returns a logger
   - `verbose:function`: write a verbose log
   - `debug:function`: write a debug log
   - `close:function`: default destructor for context data
-2. `err:string` error message
+  - `flush:function`: write a buffered data to output destination
+  - `getfd:function`: get a file descriptor
+  2. `err:string` error message
 
 
 ### Pathname format specification
@@ -109,6 +111,7 @@ returns a logger function table
   - `debug:function`: write a debug log
   - `flush:function`: set a default flush method if a `flush` function not contained in ctx
   - `close:function`: set a default destructor method if a `close` function not contained in ctx
+  - `getfd:function`: set a default getfd method if a `getfd` function not contained in ctx
 2. `err:string`: error message
 
 ### Log Level Constants
